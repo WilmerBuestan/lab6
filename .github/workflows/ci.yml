@@ -30,3 +30,73 @@ jobs:
 
       - name: Simular despliegue
         run: echo "Despliegue simulado exitoso"
+
+      - name: Notificar exito
+        if: success()
+        run: echo "La integración continua se ha completado con éxito."
+      
+      - name: Notificar fallo
+        if: failure()
+        run: echo "La integración continua ha fallado." 
+      
+      - name: Subir cobertura de codigo
+        if: success()
+        run: npm run coverage-upload
+
+      - name: Generar reporte de cobertura
+        if: success()
+        run: npm run coverage-report
+
+      - name: Publicar reporte de cobertura
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report  
+      
+      - name: Ejecutar analisis de seguridad
+        run: npm run security-scan
+
+      - name: Publicar resultados del analisis de seguridad
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-scan-report
+
+      - name: Limpiar el entorno
+        run: npm run clean
+
+      - name: Finalizar el trabajo
+        run: echo "Trabajo de CI finalizado." 
+
+      - name: Verificar dependencias vulnerables
+        run: npm audit fix
+
+      - name: Subir reporte de auditoria
+        uses: actions/upload-artifact@v3
+        with:
+          name: audit-report  
+
+      - name: Ejecutar pruebas en paralelo
+        run: npm run test-parallel
+
+      - name: Publicar resultados de pruebas en paralelo
+        uses: actions/upload-artifact@v3
+        with:
+          name: parallel-test-report
+      
+      - name: Verificar estandares de codigo
+        run: npm run code-standards-check
+
+      - name: Subir reporte de estandares de codigo
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-standards-report
+
+      - name: Ejecutar pruebas de integracion
+        run: npm run integration-tests
+
+      - name: Publicar resultados de pruebas de integracion
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-report 
+      - name: Ejecutar pruebas de regresion
+        run: npm run regression-tests
