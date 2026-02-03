@@ -87,3 +87,7 @@ jobs:
       - name: Notificar fallo
         if: failure()
         run: echo "La integración continua ha fallado."
+
+
+      - name: Build
+        run: npm ci && npm run build
