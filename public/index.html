@@ -1,0 +1,21 @@
+cat <<EOF > public/index.html
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI + HOSTING ESTATICO</title>
+</head>
+<body>
+    <h1>Sitio estatico</h1>
+    <p>Este es un sitio estatico desplegado con CI y hosting estatico</p>
+    
+    <p id="out"></p>
+    <p id="result"></p>
+
+    <script>
+        document.getElementById("out").innerHTML = "Fecha y hora actual: " + new Date().toLocaleString();
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
+EOF
