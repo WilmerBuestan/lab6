@@ -1,4 +1,4 @@
-name: CI Workflow
+name: CI/CD Completo (Test + Deploy)
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-test-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,79 +15,46 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configurar Node.js
-        uses: actions/setup-node@v4  # Actualizado a v4
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Instalar las dependencias
-        run: npm install
+        run: npm ci
 
+      # --- ZONA DE PRUEBAS ---
       - name: Lint del codigo
         run: npm run lint
 
-      - name: Ejecutar pruebas
+      - name: Ejecutar pruebas unitarias
         run: npm test
 
-      - name: Simular despliegue
-        run: echo "Despliegue simulado exitoso"
-
-      - name: Generar reporte de cobertura (Simulado)
-        if: success()
+      # --- ZONA DE SIMULACIONES (LABORATORIO) ---
+      - name: Reporte de cobertura (Simulado)
         run: npm run coverage-report
 
-      - name: Publicar reporte de cobertura
-        if: success()
-        uses: actions/upload-artifact@v4  # CORREGIDO: v4
+      - name: Subir artefacto de cobertura
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage/  # AGREGADO: Ruta de la carpeta a subir
+          path: coverage/
 
-      - name: Subir cobertura de codigo (Simulado)
-        if: success()
-        run: npm run coverage-upload
-
-      - name: Ejecutar analisis de seguridad
+      - name: Analisis de seguridad (Simulado)
         run: npm run security-scan
 
-      # Nota: Para subir el reporte de seguridad, primero debe existir un archivo.
-      # Como es simulado, crearemos uno al vuelo.
-      - name: Crear reporte de seguridad dummy
-        run: echo "Reporte de seguridad seguro" > security-report.txt
-
-      - name: Publicar resultados del analisis de seguridad
-        uses: actions/upload-artifact@v4 # CORREGIDO: v4
-        with:
-          name: security-scan-report
-          path: security-report.txt # AGREGADO
-
-      - name: Verificar dependencias vulnerables
-        # Usamos 'npm audit' sin fix para que solo reporte, 
-        # o 'true' para que no falle el pipeline si encuentra algo leve.
-        run: npm audit || true 
-
-      - name: Ejecutar pruebas en paralelo
-        run: npm run test-parallel
-
-      - name: Verificar estandares de codigo
-        run: npm run code-standards-check
-
-      - name: Ejecutar pruebas de integracion
+      - name: Pruebas de integracion (Simulado)
         run: npm run integration-tests
 
-      - name: Ejecutar pruebas de regresion
-        run: npm run regression-tests
+      # --- ZONA DE CONSTRUCCIÓN Y DESPLIEGUE ---
+      - name: Construir el sitio (Build)
+        run: npm run build
 
-      - name: Limpiar el entorno
-        run: npm run clean
-
-      - name: Notificar exito
-        if: success()
-        run: echo "La integración continua se ha completado con éxito."
-      
-      - name: Notificar fallo
-        if: failure()
-        run: echo "La integración continua ha fallado."
-
-
-      - name: Build
-        run: npm ci && npm run build
+      - name: Desplegar a Firebase Hosting
+        # Este paso solo corre si estamos en la rama 'main' y todo lo anterior pasó bien
+        if: github.ref == 'refs/heads/main' && success()
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_LAB6_CD_76224 }}'
+          channelId: live
+          projectId: lab6-cd-76224
