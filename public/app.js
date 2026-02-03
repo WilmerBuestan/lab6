@@ -7,7 +7,7 @@ document.getElementById('out').textContent = '6 + 9  = ${suma(6,9)}';
 
 
 
-console.log("Hola mundo desde app.js");
+console.log('Hola mundo desde app.js');
 
 
 
